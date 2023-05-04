@@ -1,4 +1,4 @@
-# collaborait
+# <span style=blue>collaborait</span>
 A multi-agent AI collaboration prototype
 
 First Python project so be kind. This is just a little tool to poke at the ChatGPT API.
