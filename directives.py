@@ -1,5 +1,5 @@
-statement_delimiter = " "
 
+statement_delimiter = " "
 collaboration_format = "{ 'to': 'agent_name', 'from': 'agent_name', }"
 
 class Directive:

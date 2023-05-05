@@ -1,5 +1,4 @@
 import requests
-import json
 
 class Generator:
     def __init__(self, model, api_key, temperature=0.7, max_tokens=1536):
