@@ -16,6 +16,7 @@ class Collaborator:
         self.add_message("user", prompt)
         message = self.generator.generate(self.directive.build(), self.messages)
         if (message is None):
+            print("No response")
             return None
         self.add_message('system', message)
         return message

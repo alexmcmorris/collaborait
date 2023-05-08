@@ -1,7 +1,8 @@
 import json
-from generator import Generator
-from collaborator import Moderator, Writer, Editor
 from apikey import api_key
+from collaborator import Moderator, Writer, Editor
+from context import Context
+from generator import Generator
 
 model = "gpt-3.5-turbo"
 generator = Generator(model, api_key)
@@ -20,34 +21,44 @@ last_response = \
   "Write subsequent drafs to incorporate their suggestions and resubmit for further input. " + \
   "Lets start by writing a detailed scene decription of a fantasy woodland nook near a stream."
 
-def extract_recipient(last_response):
-    routing_data = last_response[last_response.find("{"):last_response.rfind("}")+1]
+context = Context()
+context.add_message(last_response)
+
+def extract_recipient(message):
+    routing_data = message[message.find("{") : message.rfind("}")+1]
     routing_data = routing_data.replace("'", "\"")
     print("routing: " + routing_data)
     routing = json.loads(routing_data)
     recipient = routing["to"]
     return recipient
 
+def send_message(recipient, message):
+    print("Sending to: " + recipient)
+    if (recipient in agents):
+       response = agents[recipient].generate_text(message)
+       print("Response: " + response)
+       context.add_message(response)
+
+def dispatch_message(message):
+    print("Dispatching message: " + message)
+    recipient = extract_recipient(message)
+    send_message(recipient, message)
+
 while True:
-    print("Last response: " + last_response)
+    print("Last response: " + context.get_last_message())
     print(command_help)
     user_input = input("Enter command: ")
     user_input = user_input.lower()
+    
     if user_input == "quit":
-        break
-    if "'to':" in user_input:
-      for agent in agents:
-        if (agent in user_input):
-          last_response = agents[agent].generate_text(user_input)
-          break
-    if "forward@" in user_input:
-       for agent in agents:
-          if (agent in user_input):
-            last_response = agents[agent].generate_text(last_response)
-            break
-    if user_input is None or len(user_input) == 0:
-      recipient = extract_recipient(last_response)
-      for agent in agents:
-        if (agent in recipient):
-          last_response = agents[agent].generate_text(last_response)
-          break
+       break
+    
+    elif "forward@" in user_input:
+      recipient = user_input[user_input.find("@")+1 : ]
+      send_message(recipient, context.get_last_message())
+    
+    elif "'to':" in user_input:
+      dispatch_message(user_input)
+
+    elif user_input is None or len(user_input) == 0:
+      dispatch_message(context.get_last_message())
